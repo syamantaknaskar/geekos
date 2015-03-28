@@ -20,7 +20,7 @@
 #include <geekos/symbol.h>
 #include <geekos/string.h>
 #include <geekos/kthread.h>
-#include <geekos/malloc.h>
+#include <geekos/malloc.h> 
 #include <geekos/user.h>
 #include <geekos/alarm.h>
 #include <geekos/projects.h>
@@ -41,6 +41,7 @@ struct All_Thread_List s_allThreadList;
  * Queue of runnable threads.
  */
 struct Thread_Queue s_runQueue;
+struct Thread_Queue s_blockedQueue;
 
 /*
  * Current thread.

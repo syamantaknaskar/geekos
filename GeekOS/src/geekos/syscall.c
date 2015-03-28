@@ -25,14 +25,13 @@
 #include <geekos/user.h>
 #include <geekos/timer.h>
 #include <geekos/vfs.h>
-#include <geekos/signal.h>
+#include <geekos/signal.h> 
 #include <geekos/sem.h>
 #include <geekos/projects.h>
-
 #include <geekos/sys_net.h>
 #include <geekos/pipe.h>
 #include <geekos/mem.h>
-
+#include <libc/event.h>
 extern Spin_Lock_t kthreadLock;
 
 /*
@@ -295,8 +294,16 @@ static int Sys_GetPID(struct Interrupt_State *state) {
 
 extern struct All_Thread_List s_allThreadList;
 extern struct Thread_Queue s_runQueue;
-
-
+extern struct Thread_Queue s_blockedQueue;
+extern struct eventQueue *curr_interrupts;
+//extern struct int_event;
+extern void update_head(struct eventQueue *queue)
+{
+    struct int_event * it;
+    it=queue->head;
+    queue->head=it->next;
+   // free(it);
+}
 /*
  * Get information about the running processes
  * Params:
@@ -621,6 +628,13 @@ static int Sys_SymLink(struct Interrupt_State *state) {
  * Returns: number of bytes read, 0 if end of file,
  *   or error code (< 0) on error
  */
+ void add_sch(int n)
+ {
+    update_head(curr_interrupts);
+    Make_Runnable(s_blockedQueue.head);
+    Remove_Thread(&s_blockedQueue,s_blockedQueue.head);
+ }
+
 static int Sys_Read(struct Interrupt_State *state) {
     int bytes_read = 0;
     /* where is the file table? */
@@ -628,7 +642,15 @@ static int Sys_Read(struct Interrupt_State *state) {
         return EINVALID;
     }
     if (CURRENT_THREAD->userContext->file_descriptor_table[state->ebx]) {
-        void *data_buffer = Malloc(state->edx);
+        struct int_event _tmp;
+        _tmp._time=(int)g_numTicks+100;
+        _tmp._pid=CURRENT_THREAD->pid;
+	    insert_event(curr_interrupts,&_tmp);
+		//Enqueue_Thread(&s_blockedQueue,CURRENT_THREAD);
+        Start_Timer((curr_interrupts->head)->_time,&add_sch);
+	    Wait(&s_blockedQueue);
+	
+	    void *data_buffer = Malloc(state->edx);
         if (!data_buffer) {
             return ENOMEM;
         }
@@ -642,7 +664,7 @@ static int Sys_Read(struct Interrupt_State *state) {
             return EINVALID;
         }
         Free(data_buffer);
-        return bytes_read;
+        return bytes_read; 
     } else {
         return ENOTFOUND;
     }

@@ -23,7 +23,7 @@
 #include <geekos/smp.h>
 
 #define MAX_TIMER_EVENTS	100
-
+ 
 static int timerDebug = 0;
 static int timeEventCount;
 static int nextEventID;
