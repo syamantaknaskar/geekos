@@ -441,7 +441,7 @@ static void Reaper(ulong_t arg __attribute__ ((unused))) {
             Disable_Interrupts();
         }
     }
-}
+} 
 
 /*
  * Find the best (highest priority) thread in given

@@ -32,6 +32,9 @@
 #include <geekos/pipe.h>
 #include <geekos/mem.h>
 #include <libc/event.h>
+#include <libc/conio.h>
+#include <stdio.h>
+#include <stdlib.h>
 extern Spin_Lock_t kthreadLock;
 
 /*
@@ -295,15 +298,9 @@ static int Sys_GetPID(struct Interrupt_State *state) {
 extern struct All_Thread_List s_allThreadList;
 extern struct Thread_Queue s_runQueue;
 extern struct Thread_Queue s_blockedQueue;
-extern struct eventQueue *curr_interrupts;
+//extern struct eventQueue curr_interrupts;
 //extern struct int_event;
-extern void update_head(struct eventQueue *queue)
-{
-    struct int_event * it;
-    it=queue->head;
-    queue->head=it->next;
-   // free(it);
-}
+
 /*
  * Get information about the running processes
  * Params:
@@ -628,27 +625,26 @@ static int Sys_SymLink(struct Interrupt_State *state) {
  * Returns: number of bytes read, 0 if end of file,
  *   or error code (< 0) on error
  */
- void add_sch(int n)
- {
-    update_head(curr_interrupts);
-    Make_Runnable(s_blockedQueue.head);
-    Remove_Thread(&s_blockedQueue,s_blockedQueue.head);
- }
+
 
 static int Sys_Read(struct Interrupt_State *state) {
     int bytes_read = 0;
     /* where is the file table? */
+
     if (state->ebx > USER_MAX_FILES) {
+        Print("%d\n",5);
         return EINVALID;
     }
     if (CURRENT_THREAD->userContext->file_descriptor_table[state->ebx]) {
-        struct int_event _tmp;
-        _tmp._time=(int)g_numTicks+100;
-        _tmp._pid=CURRENT_THREAD->pid;
-	    insert_event(curr_interrupts,&_tmp);
-		//Enqueue_Thread(&s_blockedQueue,CURRENT_THREAD);
-        Start_Timer((curr_interrupts->head)->_time,&add_sch);
-	    Wait(&s_blockedQueue);
+        struct int_event *_tmp =(struct int_event*)Malloc(sizeof(struct int_event));
+        _tmp->_time=(int)g_numTicks+100;
+        _tmp->_pid=CURRENT_THREAD->pid;
+        _tmp->next=NULL;
+	    insert_event(&curr_interrupts,_tmp);
+      //  Start_Timer((curr_interrupts.head)->_time,&add_sch);
+       // Wait(&s_blockedQueue);
+        
+	    
 	
 	    void *data_buffer = Malloc(state->edx);
         if (!data_buffer) {
@@ -666,6 +662,7 @@ static int Sys_Read(struct Interrupt_State *state) {
         Free(data_buffer);
         return bytes_read; 
     } else {
+        Print("%d\n",7);
         return ENOTFOUND;
     }
 }
@@ -827,9 +824,73 @@ static int Sys_Format(struct Interrupt_State *state) {
 
  * Returns: 0 if successful, error code (< 0) if unsuccessful
  */
+ //extern int insert_event(struct eventQueue *queue,struct int_event *_intevent);
+
+ void add_sch(int n)
+ {
+    int ret = Cancel_Timer(n);
+    if(ret ==-1)
+    {
+        Print("Timer not cancelled ...\n");
+    }
+    else
+    {
+        Print("The File is read into at time :  %d\n",(int)g_numTicks);
+        
+        struct Kernel_Thread *kthread = s_blockedQueue.head;
+        while(kthread!=0)
+        {
+            if(kthread->pid == (curr_interrupts.head)->_pid)
+            {
+                update_head(&curr_interrupts);
+                Make_Runnable(kthread);
+                Remove_Thread(&s_blockedQueue,kthread);
+             //   Print("%d\n",(int)g_numTicks );
+            }
+            else
+            {
+                kthread = Get_Next_In_Thread_Queue(kthread);
+            }
+        }
+        
+        
+        
+        
+    }
+    
+ }
+
 static int Sys_ReadBlock(struct Interrupt_State *state) {
-    TODO_P(PROJECT_FS, "ReadBlock system call");
-    return EUNSUPPORTED;
+
+            
+        if(state->ebx!=0)
+        {
+            struct int_event *_tmp = (struct int_event *)Malloc(sizeof(struct int_event *));
+            _tmp->_time=(int)g_numTicks+100;
+            _tmp->_pid=CURRENT_THREAD->pid;
+            _tmp->next=NULL;
+            insert_event(&curr_interrupts,_tmp);
+            Print("ReadBlock sarted at time : %d\n",(int)g_numTicks );
+            Init_Timer();
+            Start_Timer(100, add_sch);
+            Wait(&s_blockedQueue);
+            return 1;
+        }
+        else
+        {
+            Print("File not present . \n" );
+        }
+            // void *data_buffer = Malloc(state->edx);
+            // if (!data_buffer) {
+            //     return ENOMEM;
+            // }
+            // else return -1;
+        // }
+        // else
+        // {
+        //     TODO_P(PROJECT_FS, "ReadBlock system call");
+        // }
+return 0;
 }
 
 /*
