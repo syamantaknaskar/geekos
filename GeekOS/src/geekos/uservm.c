@@ -91,7 +91,62 @@ int Load_User_Program(char *exeFileData, ulong_t exeFileLength,
      * - Fill in initial stack pointer, argument block address,
      *   and code entry point fields in User_Context
      */
-    TODO_P(PROJECT_VIRTUAL_MEMORY_A, "Load user program into address space");
+    int i;
+    ulong_t maxva = 0;
+    unsigned numArgs;
+    ulong_t argBlockSize;
+    ulong_t size, argBlockAddr;
+    struct User_Context *userContext = 0;
+
+    /* Find maximum virtual address */
+    for (i = 0; i < exeFormat->numSegments; ++i) {
+        struct Exe_Segment *segment = &exeFormat->segmentList[i];
+        ulong_t topva = segment->startAddress + segment->sizeInMemory;  /* FIXME: range check */
+
+        if (topva > maxva)
+            maxva = topva;
+    }
+
+    /* Determine size required for argument block */
+    Get_Argument_Block_Size(command, &numArgs, &argBlockSize);
+
+    /*
+     * Now we can determine the size of the memory block needed
+     * to run the process.
+     */
+    size = Round_Up_To_Page(maxva) + DEFAULT_USER_STACK_SIZE;
+    argBlockAddr = size;
+    size += argBlockSize;
+
+    /* Create User_Context */
+    userContext = Create_User_Context(size);
+    if (userContext == 0)
+        return -1;
+
+    /* Load segment data into memory */
+    for (i = 0; i < exeFormat->numSegments; ++i) {
+        struct Exe_Segment *segment = &exeFormat->segmentList[i];
+
+        memcpy(userContext->memory + segment->startAddress,
+               exeFileData + segment->offsetInFile, segment->lengthInFile);
+    }
+
+    /* Format argument block */
+    Format_Argument_Block(userContext->memory + argBlockAddr, numArgs,
+                          argBlockAddr, command);
+
+    /* Fill in code entry point */
+    userContext->entryAddr = exeFormat->entryAddr;
+
+    /*
+     * Fill in addresses of argument block and stack
+     * (They happen to be the same)
+     */
+    userContext->argBlockAddr = argBlockAddr;
+    userContext->stackPointerAddr = argBlockAddr;
+
+
+    *pUserContext = userContext;
     return 0;
 }
 

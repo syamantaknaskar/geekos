@@ -14,7 +14,7 @@
  * $Revision: 1.45 $
  * 
  */
-
+ 
 #include <geekos/defs.h>
 #include <geekos/ktypes.h>
 #include <geekos/kassert.h>
@@ -27,7 +27,7 @@
 #include <geekos/string.h>
 #include <geekos/paging.h>
 #include <geekos/mem.h>
-
+ 
 /* ----------------------------------------------------------------------
  * Global data
  * ---------------------------------------------------------------------- */

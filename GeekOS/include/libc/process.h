@@ -13,7 +13,7 @@
  *
  * $Revision: 1.18 $
  *
- */
+ */ 
 
 #ifndef PROCESS_H
 #define PROCESS_H
@@ -37,3 +37,4 @@ int GetUid();
 
 int ShutDown(void);
 #endif /* PROCESS_H */
+ 

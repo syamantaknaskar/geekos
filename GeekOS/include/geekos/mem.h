@@ -42,7 +42,7 @@ struct Boot_Info;
  */
 #define ISA_HOLE_START 0x0A0000
 #define ISA_HOLE_END   0x100000
-
+ 
 /*
  * We reserve the two pages just after the ISA hole for the initial
  * kernel thread's context object and stack.

@@ -146,6 +146,7 @@ void Init_VM(struct Boot_Info *bootInfo) {
      * - Do not map a page at address 0; this will help trap
      *   null pointer references
      */
+    struct pde_t Kernel_Page_Dir ;
     TODO_P(PROJECT_VIRTUAL_MEMORY_A,
            "Build initial kernel page directory and page tables");
 }

@@ -44,7 +44,7 @@ struct User_Context;
 #define VM_READ    0            /* Memory can be read (ignored for x86) */
 #define VM_EXEC    0            /* Memory can be executed (ignored for x86) */
 
-
+ 
 /*
  * Page directory entry datatype.
  * If marked as present, it specifies the physical address
