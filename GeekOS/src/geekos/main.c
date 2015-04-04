@@ -51,7 +51,6 @@
 #include <geekos/smp.h>
 #include <geekos/io.h>
 
-
 /*
  * Define this for a self-contained boot floppy
  * with a PFAT filesystem.  (Target "fd_aug.img" in

@@ -121,7 +121,7 @@ int Spawn(const char *program, const char *command,
      */
     Free(exeFileData);
     exeFileData = 0;
-
+    
     strncpy(userContext->name, program, MAX_PROC_NAME_SZB);
     userContext->name[MAX_PROC_NAME_SZB - 1] = '\0';
 
