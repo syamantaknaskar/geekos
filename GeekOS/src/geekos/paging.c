@@ -51,11 +51,11 @@
 int debugFaults = 0;
 #define Debug(args...) if (debugFaults) Print(args)
 
+struct pde_t *g_pagedir;
 
-const pde_t *Kernel_Page_Dir(void) {
-    pde_t *pg_dir;
-    
-
+const pde_t *Kernel_Page_Dir(void)
+{
+    return NULL;
 }
 
 
@@ -144,10 +144,10 @@ void Init_VM(struct Boot_Info *bootInfo) {
      * - Install an interrupt handler for interrupt 14,
      *   page fault
      * - Do not map a page at address 0; this will help trap
-     *   null pointer references
-     */
+     *   null pointer references */
+     
     if (!bootInfo->memSizeKB) {
-        /* look through memsize for a region starting at 0x100000 */
+         look through memsize for a region starting at 0x100000 
         int i;
 
         for (i = 0; i < bootInfo->numMemRegions; i++) {
@@ -168,80 +168,14 @@ void Init_VM(struct Boot_Info *bootInfo) {
     ulong_t pageListEnd;
 
     KASSERT(bootInfo->memSizeKB > 0);
-    /*getting kernel page dir and calling enable paging on kernel
-    page dir */
+
+    getting kernel page dir and calling enable paging on kernel
+    page dir 
+    SwapSpace->base_addr = 512;
+    SwapSpace->size = endOfMem;
     pde_t* Page_Dir = Kernel_Page_Dir();
-    Enable_Paging(&Page_Dir);
-    /*
-     * Before we do anything, switch from setup.asm's temporary GDT
-     * to the kernel's permanent GDT.
-     */
-    Init_GDT(0);
+    Enable_Paging();
 
-    /*
-     * We'll put the list of Page objects right after the end
-     * of the kernel, and mark it as "kernel".  This will bootstrap
-     * us sufficiently that we can start allocating pages and
-     * keeping track of them.
-     */
-    pageListAddr = (HIGHMEM_START + KERNEL_HEAP_SIZE);
-    if (pageListAddr >= endOfMem) {
-        Print
-            ("there is no memory for the page list.  physical memory is too small for the heap %u, bytes after %u. endOfMem=%lu .",
-             KERNEL_HEAP_SIZE, HIGHMEM_START, endOfMem);
-        KASSERT0(pageListAddr < endOfMem,
-                 "there is no memory for the page list.  physical memory is too small for the heap.");
-    }
-    g_pageList = (struct Page *)pageListAddr;
-    pageListEnd = Round_Up_To_Page(pageListAddr + numPageListBytes);
-
-    // clear page list
-    memset((void *)g_pageList, '\0', (pageListEnd - (ulong_t) g_pageList));
-
-    kernEnd = Round_Up_To_Page((int)&end);
-    s_numPages = numPages;
-
-    /*
-     * The initial kernel thread and its stack are placed
-     * just beyond the ISA hole.
-     */
-    KASSERT(ISA_HOLE_END == KERN_THREAD_OBJ);
-    KASSERT(KERN_STACK == KERN_THREAD_OBJ + PAGE_SIZE);
-
-    /*
-     * Memory looks like this:
-     * 0 - start: available (might want to preserve BIOS data area)
-     * start - end: kernel
-     * end - ISA_HOLE_START: available
-     * ISA_HOLE_START - ISA_HOLE_END: used by hardware (and ROM BIOS?)
-     * ISA_HOLE_END - HIGHMEM_START: used by initial kernel thread
-     * HIGHMEM_START - end of memory: available
-     *    (the kernel heap is located at HIGHMEM_START; any unused memory
-     *    beyond that is added to the freelist)
-     */
-
-    Add_Page_Range(0, PAGE_SIZE, PAGE_UNUSED);
-    Add_Page_Range(PAGE_SIZE, KERNEL_START_ADDR, PAGE_AVAIL);
-    Add_Page_Range(KERNEL_START_ADDR, kernEnd, PAGE_KERN);
-    Add_Page_Range(kernEnd, ISA_HOLE_START, PAGE_AVAIL);
-    Add_Page_Range(ISA_HOLE_START, ISA_HOLE_END, PAGE_HW);
-    Add_Page_Range(ISA_HOLE_END, HIGHMEM_START, PAGE_ALLOCATED);
-    Add_Page_Range(HIGHMEM_START, HIGHMEM_START + KERNEL_HEAP_SIZE,
-                   PAGE_HEAP);
-    Add_Page_Range(pageListAddr, pageListEnd, PAGE_KERN);
-    if (pageListEnd > endOfMem) {
-        KASSERT0(pageListEnd < endOfMem,
-                 "there is no memory after the page list.  physical memory is too small.");
-        /* this would fail at the next line (add_page_range), so this kassert just fails early. */
-    }
-    Add_Page_Range(pageListEnd, endOfMem, PAGE_AVAIL);
-
-    /* Initialize the kernel heap */
-    Init_Heap(HIGHMEM_START, KERNEL_HEAP_SIZE);
-
-    Print
-        ("%uKB memory detected, %u pages in freelist, %d bytes in kernel heap\n",
-         bootInfo->memSizeKB, g_freePageCount, KERNEL_HEAP_SIZE);
     TODO_P(PROJECT_VIRTUAL_MEMORY_A,
            "Build initial kernel page directory and page tables");
 }

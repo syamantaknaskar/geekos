@@ -67,7 +67,7 @@ DEFINE_LIST(Page_List, Page);
  */
 struct Page {
     unsigned flags;             /* Flags indicating state of page */
-     DEFINE_LINK(Page_List, Page);      /* Link fields for Page_List */
+    DEFINE_LINK(Page_List, Page);      /* Link fields for Page_List */
     int clock;
     ulong_t vaddr;              /* User virtual address where page is mapped */
     pte_t *entry;               /* Page table entry referring to the page */

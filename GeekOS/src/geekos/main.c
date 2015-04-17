@@ -110,6 +110,7 @@ void Main(struct Boot_Info *bootInfo) {
     Init_SMP();
     TODO_P(PROJECT_VIRTUAL_MEMORY_A,
            "initialize virtual memory page tables.");
+   // Init_VM(bootInfo);
     Init_Scheduler(0, (void *)KERN_STACK);
     Init_Traps();
     Init_Local_APIC(0);
@@ -143,7 +144,7 @@ void Main(struct Boot_Info *bootInfo) {
     Mount_Root_Filesystem();
 
     TODO_P(PROJECT_VIRTUAL_MEMORY_A, "initialize page file.");
-
+   // Init_Paging();
     Set_Current_Attr(ATTRIB(BLACK, GREEN | BRIGHT));
     Print("Welcome to GeekOS!\n");
     Set_Current_Attr(ATTRIB(BLACK, GRAY));

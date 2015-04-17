@@ -1,5 +1,6 @@
+#include <libc/disk.h>
 
-struct DiskController H_Disk;
+DiskController H_Disk;
 
 typedef struct
 {
@@ -8,5 +9,6 @@ typedef struct
 	int first_free_addr;
 	int unsigned s_numPages;
 	struct Page_List s_freeList;
-} SWAP;
+} Swap;
 
+Swap SwapSpace;

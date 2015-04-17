@@ -1,0 +1,12 @@
+Tapish,naveen,Ayush :
+write complete uservm.c-
+
+
+syamantak:page_fault_handeller()
+
+rajesh:init_VM()
+	init_Paging()
+
+tapish:
+
+naveen:
